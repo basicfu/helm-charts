@@ -1,0 +1,98 @@
+{{- $prefix := printf "%v-" .Values.prefix | replace "<nil>-" "" -}}
+{{- $suffix := printf "-%v" .Values.suffix | replace "-<nil>" "" -}}
+{{- range $key, $val := .Values -}}
+{{- $name := printf "%v%v%v" $prefix $key $suffix }}
+{{- with $val -}}
+{{- if ( and (ne $key "prefix") (ne $key "suffix") ) -}}
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels:
+    app: {{ $name }}
+    release: {{ $name }}
+spec:
+  {{- if .count }}
+  replicas: {{ .count }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app: {{ $name }}
+      release: {{ $name }}
+  template:
+    metadata:
+      labels:
+        app: {{ $name }}
+        release: {{ $name }}
+    spec:
+      {{- if .pullSecret }}
+      imagePullSecrets:
+        - name: {{ .pullSecret }}
+      {{- end }}
+      containers:
+        - name: {{ $name }}
+          image: "{{ .image }}:{{ if .tag }}{{ .tag }}{{ else }}latest{{ end }}"
+          {{- if .pullPolicy }}
+          imagePullPolicy: {{ .pullPolicy }}
+          {{- else }}
+          imagePullPolicy: Always
+          {{- end }}
+          {{- if .command }}
+          command: {{ .command }}
+          {{- end }}
+          {{- if .args }}
+          args: {{ .args }}
+          {{- end }}
+          ports:
+          {{- range .port -}}
+          {{- $z := printf "%v" . }}
+          {{- $v := splitList ":" $z }}
+          {{- $length := len $v }}
+          {{- if eq $length 2 }}
+            - name: http-{{ index $v 1 }}
+              containerPort: {{ index $v 1 }}
+              protocol: TCP
+          {{ else }}
+            - name: http-{{ index $v 0 }}
+              containerPort: {{ index $v 0 }}
+              protocol: TCP
+          {{ end }}
+          {{- end -}}
+          env:
+          {{- range $envKey, $envVal := .env }}
+            - name: {{ $envKey | quote }}
+              value: {{ $envVal | quote }}
+          {{- end }}
+          {{- if .livenessProbe }}
+          livenessProbe:
+{{ toYaml .livenessProbe | indent 12 }}
+          {{- end -}}
+          {{- if .readinessProbe }}
+          readinessProbe:
+{{ toYaml .readinessProbe | indent 12 }}
+          {{- end -}}
+          {{- if .resources }}
+          resources:
+{{ toYaml .resources | indent 12 }}
+          {{- end }}
+          {{- if .volumes }}
+          volumeMounts:
+          {{- range $volumeIndex, $volumeValue := .volumes }}
+          {{- $volumeSplit := splitList ":" $volumeValue }}
+          - name: name{{ $volumeIndex }}
+            mountPath: {{ index $volumeSplit 1 }}
+          {{- end }}
+          {{- end }}
+      {{- if .volumes }}
+      volumes:
+        {{- range $volumeIndex, $volumeValue := .volumes}}
+        {{- $volumeSplit := splitList ":" $volumeValue }}
+        - name: name{{ $volumeIndex }}
+          hostPath:
+            path: {{ index $volumeSplit 0 }}
+        {{- end }}
+      {{- end }}
+---
+{{- end -}}
+{{- end -}}
+{{- end -}}

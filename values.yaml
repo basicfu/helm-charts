@@ -1,0 +1,24 @@
+demo:
+  image: registry-vpc.cn-beijing.aliyuncs.com/basicfu/eureka
+  tag: latest
+  count: 1
+  port:
+    - 80:80
+  env:
+    HELLO: sip-getway-prod
+  host:
+    80: eureka.basicfu.com
+  livenessProbe:
+    httpGet:
+      path: /
+      port: http-80
+    initialDelaySeconds: 10
+  readinessProbe:
+    httpGet:
+      path: /
+      port: http-80
+    initialDelaySeconds: 20
+  volumes:
+    - /data:/var/www/html
+  tls:
+    basicfu-com: basicfu.com

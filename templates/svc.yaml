@@ -1,0 +1,66 @@
+{{- $prefix := printf "%v-" .Values.prefix | replace "<nil>-" "" -}}
+{{- $suffix := printf "-%v" .Values.suffix | replace "-<nil>" "" -}}
+{{- $enable := dict "key" "" }}
+{{- range $key, $val := .Values -}}
+{{- with $val -}}
+{{- if ( and (ne $key "prefix") (ne $key "suffix") ) -}}
+{{- range .port -}}
+{{- $z :=  printf "%v" .  }}
+{{- $v := splitList ":" $z }}
+{{- $length := len $v }}
+{{- if eq $length 2 -}}
+{{$_ := set $enable "key" "v"}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- $enable := pluck "key" $enable }}
+
+{{- if index $enable 0 -}}
+{{- range $key, $val := .Values -}}
+{{- with $val -}}
+{{- if ( and (ne $key "prefix") (ne $key "suffix") ) -}}
+
+{{- $enable := dict "key" "" }}
+{{- range .port -}}
+{{- $z :=  printf "%v" .  }}
+{{- $v := splitList ":" $z }}
+{{- $length := len $v }}
+{{- if eq $length 2 -}}
+{{$_ := set $enable "key" "v"}}
+{{- end -}}
+{{- end -}}
+{{- $enable := pluck "key" $enable }}
+{{- if index $enable 0 -}}
+{{- $name := printf "%v%v%v" $prefix $key $suffix }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  labels:
+    app: {{ $name }}
+    release: {{ $name }}
+spec:
+  type: ClusterIP
+  ports:
+    {{- range .port -}}
+    {{- $z := printf "%v" . }}
+    {{- $v := splitList ":" $z }}
+    {{- $length := len $v }}
+    {{- if eq $length 2 }}
+    - port: {{ index $v 0 }}
+      targetPort: http-{{ index $v 1 }}
+      protocol: TCP
+      name: http-{{ index $v 0 }}
+    {{- end -}}
+    {{- end }}
+  selector:
+    app: {{ $name }}
+    release: {{ $name }}
+---
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
