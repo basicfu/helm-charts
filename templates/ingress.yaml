@@ -37,6 +37,7 @@ spec:
   tls:
 {{- range $key, $val := .Values }}
 {{- with $val }}
+{{- if ( and (ne $key "prefix") (ne $key "suffix") ) -}}
 {{- if .tls }}
   {{- range $key, $val := .tls }}
   - secretName: {{ $key }}
@@ -48,6 +49,7 @@ spec:
   {{- end }}
   {{- end }}
   {{- end -}}
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}
