@@ -41,7 +41,8 @@ spec:
           command: {{ .command }}
           {{- end }}
           {{- if .args }}
-          args: {{ .args }}
+          args:
+{{ toYaml .args | indent 12 }}
           {{- end }}
           ports:
           {{- range .port -}}
