@@ -1,13 +1,28 @@
+suffix: app
+prefix: dev
 demo:
   image: registry-vpc.cn-beijing.aliyuncs.com/basicfu/eureka
   tag: latest
+  pullSecret: aliyun
+  restartPolicy: Never
+  command: []
+  args: []
   count: 1
+  annotations:
+    a: "a"
   port:
-    - 80:80
+    - 80:82
+  host:
+   80: eureka.basicfu.com
+  tls:
+    basicfu-com: basicfu.com
+  serviceAnnotations:
+    service: "service"
+    service1: "service1"
+  ingressAnnotations:
+    a: "a"
   env:
     HELLO: sip-getway-prod
-  host:
-    80: eureka.basicfu.com
   livenessProbe:
     httpGet:
       path: /
@@ -18,7 +33,42 @@ demo:
       path: /
       port: http-80
     initialDelaySeconds: 20
+  resources:
+    limits:
+      memory: 500Mi
+    requests:
+      memory: 200Mi
+  secret:
+    a: 1
+    game.properties: |-
+      enemies=aliens
+      lives=3
+  configMap:
+    a: 1
+    game.properties: |-
+      enemies=aliens
+      lives=3
   volumes:
-    - /data:/var/www/html
-  tls:
-    basicfu-com: basicfu.com
+    hostPath:
+      path:
+      - /data:/var/www/html:aa.yaml:true
+      - /data1:/var/www/html1:aa.yaml
+      - /data1:/var/www/html1
+    nfs:
+      server: a.nfs.com
+      path:
+      - /data:/var/www/html:aa.yaml:true
+      - /data1:/var/www/html1:aa.yaml
+    configMap:
+      demo-config:
+        path:
+        - /var/www/html:aa.yaml:true
+        items:
+        - a.yaml:sub
+        - b.yaml:sub
+    secret:
+      demo-secret:
+        path:
+        - /var/www/html:aa.yaml:true
+        items:
+        - a.yaml:sub

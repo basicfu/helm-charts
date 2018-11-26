@@ -85,19 +85,125 @@ spec:
           {{- end }}
           {{- if .volumes }}
           volumeMounts:
-          {{- range $volumeIndex, $volumeValue := .volumes }}
+          {{- if .volumes.hostPath }}
+          {{- range $volumeIndex, $volumeValue := .volumes.hostPath.path }}
           {{- $volumeSplit := splitList ":" $volumeValue }}
-          - name: name{{ $volumeIndex }}
+          {{- $length := len $volumeSplit }}
+          - name: hostpath-{{ $volumeIndex }}
             mountPath: {{ index $volumeSplit 1 }}
+            {{- if gt $length 2 }}
+            subPath: {{ index $volumeSplit 2 }}
+            {{- end }}
+            {{- if gt $length 3 }}
+            readOnly: {{ index $volumeSplit 3 }}
+            {{- end }}
           {{- end }}
+          {{- end }}
+
+          {{- if .volumes.nfs }}
+          {{- range $volumeIndex, $volumeValue := .volumes.nfs.path }}
+          {{- $volumeSplit := splitList ":" $volumeValue }}
+          {{- $length := len $volumeSplit }}
+          - name: nfs-{{ $volumeIndex }}
+            mountPath: {{ index $volumeSplit 1 }}
+            {{- if gt $length 2 }}
+            subPath: {{ index $volumeSplit 2 }}
+            {{- end }}
+            {{- if gt $length 3 }}
+            readOnly: {{ index $volumeSplit 3 }}
+            {{- end }}
+          {{- end }}
+          {{- end }}
+
+          {{- if .volumes.configMap }}
+          {{- range $mapKey, $mapVal := .volumes.configMap }}
+          {{- range $volumeIndex, $volumeValue := $mapVal.path }}
+          {{- $volumeSplit := splitList ":" $volumeValue }}
+          {{- $length := len $volumeSplit }}
+          - name: {{ $mapKey }}
+            mountPath: {{ index $volumeSplit 0 }}
+            {{- if gt $length 1 }}
+            subPath: {{ index $volumeSplit 1 }}
+            {{- end }}
+            {{- if gt $length 2 }}
+            readOnly: {{ index $volumeSplit 2 }}
+            {{- end }}
+          {{- end }}
+          {{- end }}
+          {{- end }}
+
+          {{- if .volumes.secret }}
+          {{- range $mapKey, $mapVal := .volumes.secret }}
+          {{- range $volumeIndex, $volumeValue := $mapVal.path }}
+          {{- $volumeSplit := splitList ":" $volumeValue }}
+          {{- $length := len $volumeSplit }}
+          - name: {{ $mapKey }}
+            mountPath: {{ index $volumeSplit 0 }}
+            {{- if gt $length 1 }}
+            subPath: {{ index $volumeSplit 1 }}
+            {{- end }}
+            {{- if gt $length 2 }}
+            readOnly: {{ index $volumeSplit 2 }}
+            {{- end }}
+          {{- end }}
+          {{- end }}
+          {{- end }}
+
           {{- end }}
       {{- if .volumes }}
       volumes:
-        {{- range $volumeIndex, $volumeValue := .volumes}}
+        {{- if .volumes.hostPath }}
+        {{- range $volumeIndex, $volumeValue := .volumes.hostPath.path}}
         {{- $volumeSplit := splitList ":" $volumeValue }}
-        - name: name{{ $volumeIndex }}
+        - name: hostpath-{{ $volumeIndex }}
           hostPath:
+            {{- if $val.volumes.hostPath.type }}
+            type: {{ $val.volumes.hostPath.type }}
+            {{ end }}
             path: {{ index $volumeSplit 0 }}
+        {{- end }}
+        {{- end }}
+
+        {{- if .volumes.nfs }}
+        {{- range $volumeIndex, $volumeValue := .volumes.nfs.path}}
+        {{- $volumeSplit := splitList ":" $volumeValue }}
+        - name: nfs-{{ $volumeIndex }}
+          nfs:
+            server: {{ $val.volumes.nfs.server }}
+            path: {{ index $volumeSplit 0 }}
+        {{- end }}
+        {{- end }}
+
+        {{- if .volumes.configMap }}
+        {{- range $mapKey, $mapVal := .volumes.configMap }}
+        - name: {{ $mapKey }}
+          configMap:
+            name: {{ $mapKey }}
+            {{- if $mapVal.items }}
+            items:
+            {{- range $volumeIndex, $volumeValue := $mapVal.items}}
+            {{- $volumeSplit := splitList ":" $volumeValue }}
+            - key: {{ index $volumeSplit 0 }}
+              path: {{ index $volumeSplit 1 }}
+            {{- end }}
+            {{- end }}
+        {{- end }}
+        {{- end }}
+
+        {{- if .volumes.secret }}
+        {{- range $mapKey, $mapVal := .volumes.secret }}
+        - name: {{ $mapKey }}
+          configMap:
+            name: {{ $mapKey }}
+            {{- if $mapVal.items }}
+            items:
+            {{- range $volumeIndex, $volumeValue := $mapVal.items}}
+            {{- $volumeSplit := splitList ":" $volumeValue }}
+            - key: {{ index $volumeSplit 0 }}
+              path: {{ index $volumeSplit 1 }}
+            {{- end }}
+            {{- end }}
+        {{- end }}
         {{- end }}
       {{- end }}
 ---
