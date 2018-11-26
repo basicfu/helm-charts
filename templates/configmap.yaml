@@ -1,0 +1,32 @@
+{{- $prefix := printf "%v-" .Values.prefix | replace "<nil>-" "" -}}
+{{- $suffix := printf "-%v" .Values.suffix | replace "-<nil>" "" -}}
+{{- $enable := dict "key" "" }}
+{{- range $key, $val := .Values -}}
+{{- with $val -}}
+{{- if ( and (ne $key "prefix") (ne $key "suffix") ) -}}
+{{- if .configMap -}}
+{{$_ := set $enable "key" $key }}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- $enable := pluck "key" $enable }}
+
+{{- if index $enable 0 -}}
+{{- range $key, $val := .Values -}}
+{{- $name := printf "%v%v%v" $prefix $key $suffix }}
+{{- with $val -}}
+{{- if ( and (ne $key "prefix") (ne $key "suffix") ) -}}
+{{- if .configMap -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $name }}
+data:
+{{ toYaml .configMap | indent 2 }}
+---
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
