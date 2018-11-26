@@ -11,6 +11,10 @@ metadata:
   labels:
     app: {{ $name }}
     release: {{ $name }}
+  {{- if .serviceAnnotations }}
+  annotations:
+{{ toYaml .ingressAnnotations | indent 4 }}
+  {{- end }}
 spec:
   {{- if .count }}
   replicas: {{ .count }}
@@ -25,6 +29,9 @@ spec:
         app: {{ $name }}
         release: {{ $name }}
     spec:
+      {{- if .restartPolicy }}
+      restartPolicy: {{ .restartPolicy }}
+      {{- end }}
       {{- if .pullSecret }}
       imagePullSecrets:
         - name: {{ .pullSecret }}
