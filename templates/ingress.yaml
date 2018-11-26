@@ -1,23 +1,25 @@
 {{- $enable := dict "key" "" }}
-{{- $tlsEnable := dict "key" "" }}
 {{- range $key, $val := .Values -}}
 {{- with $val -}}
 {{- if ( and (ne $key "prefix") (ne $key "suffix") ) -}}
 {{- if .host -}}
 {{$_ := set $enable "key" $key }}
 {{- end -}}
-{{- if .tls -}}
-{{$_ := set $tlsEnable "key" $key }}
-{{- end -}}
 {{- end -}}
 {{- end -}}
 {{- end -}}
 {{- $enable := pluck "key" $enable }}
-{{- $tlsEnable := pluck "key" $tlsEnable }}
+
 {{- if index $enable 0 -}}
 {{- $prefix2 := printf "%v-" .Values.prefix | replace "<nil>-" "" }}
 {{- $prefix := printf "%v" .Values.prefix | replace "<nil>" "" }}
 {{- $suffix := printf "-%v" .Values.suffix | replace "-<nil>" "" }}
+
+{{- range $key, $val := .Values -}}
+{{- with $val -}}
+{{- if ( and (ne $key "prefix") (ne $key "suffix") ) -}}
+{{- if .host -}}
+
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
@@ -32,13 +34,13 @@ metadata:
     app: {{ index $enable 0 }}{{ $suffix }}
     release: {{ index $enable 0 }}{{ $suffix }}
 {{- end }}
+  {{- if .serviceAnnotations }}
+  annotations:
+{{ toYaml .ingressAnnotations | indent 4 }}
+  {{- end }}
 spec:
-{{- if index $tlsEnable 0 }}
+  {{- if .tls }}
   tls:
-{{- range $key, $val := .Values }}
-{{- with $val }}
-{{- if ( and (ne $key "prefix") (ne $key "suffix") ) -}}
-{{- if .tls }}
   {{- range $key, $val := .tls }}
   - secretName: {{ $key }}
   {{- if $val }}
@@ -49,15 +51,8 @@ spec:
   {{- end }}
   {{- end }}
   {{- end -}}
-{{- end }}
-{{- end }}
-{{- end }}
-{{- end }}
-{{- end }}
+  {{- end }}
   rules:
-{{- range $key, $val := .Values }}
-{{- with $val }}
-{{- if ( and (ne $key "prefix") (ne $key "suffix") ) -}}
 {{- range $k, $val := .host}}
     {{- $domain := splitList ";" $val }}
     {{- range $domain }}
@@ -68,7 +63,9 @@ spec:
             backend:
               serviceName: {{ printf "%v%v%v" $prefix2 $key $suffix }}
               servicePort: http-{{ $k }}
-    {{- end -}}
+---
+{{- end -}}
+{{- end -}}
 {{- end -}}
 {{- end -}}
 {{- end -}}
