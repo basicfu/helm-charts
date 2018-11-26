@@ -41,6 +41,10 @@ metadata:
   labels:
     app: {{ $name }}
     release: {{ $name }}
+  {{- if .serviceAnnotations }}
+  annotations:
+{{ toYaml .serviceAnnotations | indent 4 }}
+  {{- end }}
 spec:
   type: ClusterIP
   ports:
