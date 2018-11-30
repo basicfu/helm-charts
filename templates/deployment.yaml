@@ -36,6 +36,10 @@ spec:
       imagePullSecrets:
         - name: {{ .pullSecret }}
       {{- end }}
+      {{- if .initContainers }}
+      initContainers:
+{{ toYaml .initContainers | indent 6 }}
+      {{- end }}
       containers:
         - name: {{ $name }}
           image: "{{ .image }}:{{ if .tag }}{{ .tag }}{{ else }}latest{{ end }}"
@@ -45,8 +49,9 @@ spec:
           imagePullPolicy: Always
           {{- end }}
           {{- if .command }}
-          command: {{ .command }}
-          {{- end }}
+          command:
+{{ toYaml .command | indent 12 }}
+          {{- end -}}
           {{- if .args }}
           args:
 {{ toYaml .args | indent 12 }}
@@ -66,10 +71,12 @@ spec:
               protocol: TCP
           {{ end }}
           {{- end -}}
+          {{- if .env }}
           env:
           {{- range $envKey, $envVal := .env }}
             - name: {{ $envKey | quote }}
               value: {{ $envVal | quote }}
+          {{- end }}
           {{- end }}
           {{- if .livenessProbe }}
           livenessProbe:

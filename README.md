@@ -24,6 +24,7 @@
 | `*.livenessProbe`               | 参考官网解释                                   |
 | `*.readinessProbe`              | 参考官网解释                                   |
 | `*.resources`                   | 参考官网解释                                   |
+| `*.initContainers`              | 参考官网解释                                   |
 | `*.secret`                      | 创建一个`secret`                             |
 | `*.configMap`                   | 创建一个`configMap`                          |
 | `*.volumes`                     | 生成挂载目录                                   |
