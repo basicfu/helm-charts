@@ -16,6 +16,11 @@ metadata:
 {{ toYaml .ingressAnnotations | indent 4 }}
   {{- end }}
 spec:
+  {{- if .revisionHistoryLimit }}
+  revisionHistoryLimit: {{ .revisionHistoryLimit }}
+  {{- else }}
+  revisionHistoryLimit: 3
+  {{- end }}
   {{- if .count }}
   replicas: {{ .count }}
   {{- end }}
