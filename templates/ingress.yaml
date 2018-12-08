@@ -1,3 +1,6 @@
+{{- $prefix := printf "%v-" .Values.prefix | replace "<nil>-" "" -}}
+{{- $suffix := printf "-%v" .Values.suffix | replace "-<nil>" "" -}}
+{{- $prefix2 := printf "%v-" .Values.prefix | replace "<nil>-" "" }}
 {{- $enable := dict "key" "" }}
 {{- range $key, $val := .Values -}}
 {{- with $val -}}
@@ -11,11 +14,9 @@
 {{- $enable := pluck "key" $enable }}
 
 {{- if index $enable 0 -}}
-{{- $prefix2 := printf "%v-" .Values.prefix | replace "<nil>-" "" }}
-{{- $prefix := printf "%v" .Values.prefix | replace "<nil>" "" }}
-{{- $suffix := printf "-%v" .Values.suffix | replace "-<nil>" "" }}
 
 {{- range $key, $val := .Values -}}
+{{- $name := printf "%v%v%v" $prefix $key $suffix }}
 {{- with $val -}}
 {{- if ( and (ne $key "prefix") (ne $key "suffix") ) -}}
 {{- if .host -}}
@@ -23,17 +24,10 @@
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-{{- if $prefix }}
-  name: {{ $prefix }}{{ $suffix }}
+  name: {{ $name }}
   labels:
-    app: {{ $prefix }}{{ $suffix }}
-    release: {{ $prefix }}{{ $suffix }}
-{{- else }}
-  name: {{ index $enable 0 }}{{ $suffix }}
-  labels:
-    app: {{ index $enable 0 }}{{ $suffix }}
-    release: {{ index $enable 0 }}{{ $suffix }}
-{{- end }}
+    app: {{ $name }}
+    release: {{ $name }}
   {{- if .serviceAnnotations }}
   annotations:
 {{ toYaml .ingressAnnotations | indent 4 }}
