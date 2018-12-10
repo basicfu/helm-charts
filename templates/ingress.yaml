@@ -28,7 +28,7 @@ metadata:
   labels:
     app: {{ $name }}
     release: {{ $name }}
-  {{- if .serviceAnnotations }}
+  {{- if .ingressAnnotations }}
   annotations:
 {{ toYaml .ingressAnnotations | indent 4 }}
   {{- end }}
