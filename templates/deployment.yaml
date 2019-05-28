@@ -131,6 +131,18 @@ spec:
           {{- end }}
           {{- end }}
 
+          {{- if .volumes.pvc }}
+          {{- range $volumeIndex, $volumeValue := .volumes.pvc.path }}
+          {{- $volumeSplit := splitList ":" $volumeValue }}
+          {{- $length := len $volumeSplit }}
+          - name: pvc-{{ $volumeIndex }}
+            mountPath: {{ index $volumeSplit 0 }}
+            {{- if gt $length 1 }}
+            subPath: {{ index $volumeSplit 1 }}
+            {{- end }}
+          {{- end }}
+          {{- end }}
+
           {{- if .volumes.configMap }}
           {{- range $mapKey, $mapVal := .volumes.configMap }}
           {{- range $volumeIndex, $volumeValue := $mapVal.path }}
@@ -187,6 +199,15 @@ spec:
           nfs:
             server: {{ $val.volumes.nfs.server }}
             path: {{ index $volumeSplit 0 }}
+        {{- end }}
+        {{- end }}
+
+        {{- if .volumes.pvc }}
+        {{- range $volumeIndex, $volumeValue := .volumes.pvc.path}}
+        {{- $volumeSplit := splitList ":" $volumeValue }}
+        - name: pvc-{{ $volumeIndex }}
+          persistentVolumeClaim:
+            claimName: {{ $val.volumes.pvc.name }}
         {{- end }}
         {{- end }}
 
