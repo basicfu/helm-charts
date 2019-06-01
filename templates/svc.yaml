@@ -46,7 +46,11 @@ metadata:
 {{ toYaml .serviceAnnotations | indent 4 }}
   {{- end }}
 spec:
+  {{- if .serviceType }}
+  type: {{ .serviceType }}
+  {{- else }}
   type: ClusterIP
+  {{- end }}
   ports:
     {{- range .port -}}
     {{- $z := printf "%v" . }}
