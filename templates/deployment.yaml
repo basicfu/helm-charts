@@ -135,7 +135,7 @@ spec:
           {{- range $volumeIndex, $volumeValue := .volumes.pvc.path }}
           {{- $volumeSplit := splitList ":" $volumeValue }}
           {{- $length := len $volumeSplit }}
-          - name: pvc-{{ $volumeIndex }}
+          - name: pvc
             mountPath: {{ index $volumeSplit 0 }}
             {{- if gt $length 1 }}
             subPath: {{ index $volumeSplit 1 }}
@@ -203,12 +203,9 @@ spec:
         {{- end }}
 
         {{- if .volumes.pvc }}
-        {{- range $volumeIndex, $volumeValue := .volumes.pvc.path}}
-        {{- $volumeSplit := splitList ":" $volumeValue }}
-        - name: pvc-{{ $volumeIndex }}
+        - name: pvc
           persistentVolumeClaim:
             claimName: {{ $val.volumes.pvc.name }}
-        {{- end }}
         {{- end }}
 
         {{- if .volumes.configMap }}
