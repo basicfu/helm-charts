@@ -41,7 +41,7 @@ spec:
     hosts:
   {{- $domain := splitList ";" $val }}
   {{- range $domain }}
-    - {{ . }}
+    - {{ printf "%s" . | quote }}
   {{- end }}
   {{- end }}
   {{- end -}}
@@ -50,7 +50,7 @@ spec:
 {{- range $k, $val := .host}}
     {{- $domain := splitList ";" $val }}
     {{- range $domain }}
-    - host: {{ . }}
+    - host: {{ printf "%s" . | quote }}
       http:
         paths:
           - path:
